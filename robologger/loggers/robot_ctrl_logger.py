@@ -268,6 +268,7 @@ class RobotCtrlLogger(BaseLogger):
         state_joint_pos: Optional[npt.NDArray[np.float64]] = None,
         state_joint_vel: Optional[npt.NDArray[np.float64]] = None,
         state_joint_torque: Optional[npt.NDArray[np.float64]] = None,
+        state_ft_wrench: Optional[npt.NDArray[np.float64]] = None,
     ):
         """Log robot state (current pose and/or joint positions).
 
@@ -278,6 +279,7 @@ class RobotCtrlLogger(BaseLogger):
             state_joint_pos: Joint positions (required if log_joint_pos=True)
             state_joint_vel: Joint velocities (optional, lazily initialized if provided)
             state_joint_torque: Joint torques (optional, lazily initialized if provided)
+            state_ft_wrench: Force/torque wrench [fx,fy,fz,tx,ty,tz] (optional, lazily initialized if provided)
         """
         if not self._is_recording:
             logger.warning(f"[{self.name}] Not recording, but received state command")
@@ -321,6 +323,12 @@ class RobotCtrlLogger(BaseLogger):
                     if "state_joint_torque" not in self.data_lists:
                         self.data_lists["state_joint_torque"] = []
                     self.data_lists["state_joint_torque"].append(state_joint_torque.copy())
+
+            if state_ft_wrench is not None:
+                assert state_ft_wrench.shape == (6,), f"Expected ft_wrench shape (6,), got {state_ft_wrench.shape}"
+                if "state_ft_wrench" not in self.data_lists:
+                    self.data_lists["state_ft_wrench"] = []
+                self.data_lists["state_ft_wrench"].append(state_ft_wrench.copy())
 
             # Append to in-memory lists 
             self.data_lists["state_timestamps"].append(state_timestamp)

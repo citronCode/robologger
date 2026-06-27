@@ -272,8 +272,12 @@ class MainLogger:
             logger.error(f"[Delete Episode] Error deleting episode {episode_idx}: {e}")
             return False
 
-    def delete_last_episode(self) -> Optional[int]:
+    def delete_last_episode(self, confirm: bool = True) -> Optional[int]:
         """Delete the most recently completed episode.
+
+        Args:
+            confirm: If True, prompt the user for confirmation before deleting.
+                     Set to False for non-interactive contexts (e.g. remote/programmatic deletion).
 
         Returns:
             Episode index if deleted, None if no episode to delete or recording is active.
@@ -300,20 +304,21 @@ class MainLogger:
 
         logger.info(f"[Delete Last Episode] Deleting episode {self.last_episode_idx}: {episode_dir}")
 
-        # prompt for confirmation (default: yes)
-        try:
-            while True:
-                response = input(f"Confirming deleting episode {self.last_episode_idx} at {episode_dir}? (input might not show) [y]/n: ").strip().lower()
-                if response == '' or response in ['y', 'yes']:
-                    break
-                elif response in ['n', 'no']:
-                    logger.info(f"[Delete Last Episode] Deletion of episode {self.last_episode_idx} cancelled by user")
-                    return None
-                else:
-                    print("Please enter 'y' for yes or 'n' for no (default is yes)")
-        except (EOFError, KeyboardInterrupt):
-            logger.info(f"[Delete Last Episode] Deletion of episode {self.last_episode_idx} cancelled by user")
-            return None
+        if confirm:
+            # prompt for confirmation (default: yes)
+            try:
+                while True:
+                    response = input(f"Confirming deleting episode {self.last_episode_idx} at {episode_dir}? (input might not show) [y]/n: ").strip().lower()
+                    if response == '' or response in ['y', 'yes']:
+                        break
+                    elif response in ['n', 'no']:
+                        logger.info(f"[Delete Last Episode] Deletion of episode {self.last_episode_idx} cancelled by user")
+                        return None
+                    else:
+                        print("Please enter 'y' for yes or 'n' for no (default is yes)")
+            except (EOFError, KeyboardInterrupt):
+                logger.info(f"[Delete Last Episode] Deletion of episode {self.last_episode_idx} cancelled by user")
+                return None
 
         shutil.rmtree(episode_dir)
 
